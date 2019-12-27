@@ -27,7 +27,7 @@ static compressResult_t compress_file(unsigned f_in, unsigned f_out);
 """)
 
 ffibuilder.set_source(
-    "_lz4_cffi",
+    "_lz4frame_cffi",
     r"""
 #include <stdio.h>
 #include <stdlib.h>
@@ -256,17 +256,10 @@ static compressResult_t compress_file(unsigned f_in, unsigned f_out) {
     extra_compile_args=['-Wall', '-O3',  '-march=native', '-mtune=native'])
 
 try:
-    from _lz4_cffi import ffi, lib
+    from _lz4frame_cffi import ffi, lib
 except:
-    orig = os.getcwd()
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    for path in os.listdir('.'):
-        if path.startswith('_') and os.path.isfile(path):
-            print('rm:', path)
-            os.remove(path)
     ffibuilder.compile(verbose=True)
-    from _lz4_cffi import ffi, lib
-    os.chdir(orig)
+    from _lz4frame_cffi import ffi, lib
 
 read_i = itertools.count(0)
 read_streams = {}

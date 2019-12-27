@@ -5,4 +5,4 @@
 *.pyc
 *_test
 build/*
-_lz4_cffi.*
+_lz4frame_cffi.*

@@ -6,8 +6,8 @@ setup(
     author='nathants',
     author_email='me@nathants.com',
     url='http://github.com/nathants/lz4frame-cffi/',
-    packages=['lz4'],
+    packages=['lz4frame'],
     install_requires=['cffi>=1.0.0'],
-    cffi_modules=["lz4/__init__.py:ffibuilder"],
+    cffi_modules=["lz4frame/__init__.py:ffibuilder"],
     setup_requires=['cffi>=1.0.0'],
 )
