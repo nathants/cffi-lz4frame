@@ -258,51 +258,53 @@ static compressResult_t compress_file(unsigned f_in, unsigned f_out) {
 try:
     from _lz4frame_cffi import ffi, lib
 except:
+    pass
+else:
+    read_i = itertools.count(0)
+    read_streams = {}
+
+    @ffi.def_extern()
+    def _py_fread(ptr, size, count, stream):
+        size *= count
+        val = read_streams[stream].read(size)
+        read_size = len(val)
+        ffi.memmove(ptr, val, read_size)
+        return read_size
+
+    write_i = itertools.count(0)
+    write_streams = {}
+
+    @ffi.def_extern()
+    def _py_fwrite(ptr, size, count, stream):
+        size *= count
+        val = ffi.buffer(ptr, size)
+        write_size = write_streams[stream].write(val)
+        return write_size
+
+    def decompress(some_bytes):
+        in_file = next(read_i)
+        read_streams[in_file] = io.BytesIO(some_bytes)
+        out_file = next(write_i)
+        write_streams[out_file] = io.BytesIO()
+        try:
+            assert 0 == lib.decompress_file(in_file, out_file)
+            return write_streams[out_file].getvalue()
+        finally:
+            del read_streams[in_file]
+            del write_streams[out_file]
+
+    def compress(some_bytes):
+        in_file = next(read_i)
+        read_streams[in_file] = io.BytesIO(some_bytes)
+        out_file = next(write_i)
+        write_streams[out_file] = io.BytesIO()
+        try:
+            result = lib.compress_file(in_file, out_file)
+            assert result.error == 0
+            return write_streams[out_file].getvalue()
+        finally:
+            del read_streams[in_file]
+            del write_streams[out_file]
+
+if __name__ == '__main__':
     ffibuilder.compile(verbose=True)
-    from _lz4frame_cffi import ffi, lib
-
-read_i = itertools.count(0)
-read_streams = {}
-
-@ffi.def_extern()
-def _py_fread(ptr, size, count, stream):
-    size *= count
-    val = read_streams[stream].read(size)
-    read_size = len(val)
-    ffi.memmove(ptr, val, read_size)
-    return read_size
-
-write_i = itertools.count(0)
-write_streams = {}
-
-@ffi.def_extern()
-def _py_fwrite(ptr, size, count, stream):
-    size *= count
-    val = ffi.buffer(ptr, size)
-    write_size = write_streams[stream].write(val)
-    return write_size
-
-def decompress(some_bytes):
-    in_file = next(read_i)
-    read_streams[in_file] = io.BytesIO(some_bytes)
-    out_file = next(write_i)
-    write_streams[out_file] = io.BytesIO()
-    try:
-        assert 0 == lib.decompress_file(in_file, out_file)
-        return write_streams[out_file].getvalue()
-    finally:
-        del read_streams[in_file]
-        del write_streams[out_file]
-
-def compress(some_bytes):
-    in_file = next(read_i)
-    read_streams[in_file] = io.BytesIO(some_bytes)
-    out_file = next(write_i)
-    write_streams[out_file] = io.BytesIO()
-    try:
-        result = lib.compress_file(in_file, out_file)
-        assert result.error == 0
-        return write_streams[out_file].getvalue()
-    finally:
-        del read_streams[in_file]
-        del write_streams[out_file]
