@@ -8,3 +8,4 @@
 *_test
 build/*
 _lz4frame_cffi.*
+dist/
