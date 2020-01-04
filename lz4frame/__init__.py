@@ -253,6 +253,7 @@ static compressResult_t compress_file(unsigned f_in, unsigned f_out) {
 
 """,
     sources=_sources,
+    include_dirs=['lz4frame'],
     extra_compile_args=['-Wall', '-O3',  '-march=native', '-mtune=native'])
 
 try:
